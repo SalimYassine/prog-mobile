@@ -1,26 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
-    android:padding="16dp">
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="24dp">
 
     <TextView
         android:id="@+id/tv_welcome"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="SmartHouseApp"
-        android:textSize="28sp"
-        android:textColor="#757575"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="20dp" />
+        android:text="La Maison Bluetooth"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="#00796B"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Voulez-vous activer le serveur (hub) ou le client (télécommande utilisateur) ?"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:layout_marginBottom="40dp"/>
 
     <Button
-        android:id="@+id/btn_start"
+        android:id="@+id/btn_lancer_serveur"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="LANCER LE SERVEUR"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btn_lancer_client"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="LANCER LE CLIENT" />
+
+    <TextView
+        android:id="@+id/tv_status_connexion"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/tv_welcome"
-        android:layout_centerHorizontal="true"
-        android:text="START" />
+        android:text="*Attente de connexion...*"
+        android:textStyle="italic"
+        android:layout_marginTop="40dp"
+        android:visibility="gone" />
 
-</RelativeLayout>
+</LinearLayout>

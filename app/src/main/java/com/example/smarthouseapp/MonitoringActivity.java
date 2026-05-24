@@ -31,6 +31,7 @@ import android.os.Looper;
 
 public class MonitoringActivity extends AppCompatActivity {
 
+    public static MonitoringActivity instance = null;
     private LinearLayout llDeviceList;
     private RequestQueue queue;
 
@@ -45,6 +46,7 @@ public class MonitoringActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        instance = this;
         setContentView(R.layout.activity_monitoring);
 
         llDeviceList = findViewById(R.id.ll_device_list);
@@ -211,38 +213,53 @@ public class MonitoringActivity extends AppCompatActivity {
      * Envoie une commande POST pour changer l'état d'un appareil (Section 4 du TP)
      */
     private void toggleDeviceState(final int deviceId) {
+        if (MainActivity.estServeur) {
+            // --- LE SERVEUR ---
+            // Il garde l'ancien code : c'est lui qui fait la vraie requête HTTP à l'API
+            faireRequeteApi(deviceId);
+        } else {
+            // --- LE CLIENT (Télécommande) ---
+            // Il n'utilise pas Internet. Il envoie l'ordre au serveur par Bluetooth.
+            if (MainActivity.threadDeCommunication != null) {
+                String ordre = "TOGGLE:" + deviceId;
+                MainActivity.threadDeCommunication.envoyerMessage(ordre);
+                Toast.makeText(this, "Ordre envoyé au Serveur !", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Erreur : Bluetooth non connecté", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    // J'ai juste isolé ton ancien code Volley dans cette méthode pour que ce soit propre
+    public void faireRequeteApi(final int deviceId) {
         StringRequest stringRequest = new StringRequest(
                 Request.Method.POST,
                 URL_POST_COMMAND,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        // Une fois l'action effectuée, on réactualise toute la liste pour voir le changement
-                        fetchDevices();
+                        fetchDevices(); // On réactualise l'affichage
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.e("MonitoringActivity", "Erreur POST: " + error.getMessage());
                         Toast.makeText(MonitoringActivity.this, "Impossible de modifier l'état", Toast.LENGTH_SHORT).show();
-                        fetchDevices(); // Réactualise quand même pour remettre le bouton à jour
+                        fetchDevices();
                     }
                 }
         ) {
             @Override
             protected Map<String, String> getParams() {
-                // Paramètres requis par l'API REST de la maison connectée
                 Map<String, String> params = new HashMap<>();
                 params.put("deviceId", String.valueOf(deviceId));
-                params.put("houseId", HOUSE_ID);
+                params.put("houseId", HOUSE_ID); // N'oublie pas que HOUSE_ID doit être ton vrai ID
                 params.put("action", "turnOnOff");
                 return params;
             }
 
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                // Déclaration du type de contenu comme indiqué dans le Listing 6 du sujet
                 Map<String, String> params = new HashMap<>();
                 params.put("Content-Type", "application/x-www-form-urlencoded");
                 return params;
