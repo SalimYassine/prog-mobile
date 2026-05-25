@@ -35,7 +35,6 @@ public class MonitoringActivity extends AppCompatActivity {
     private LinearLayout llDeviceList;
     private RequestQueue queue;
 
-    // /!\ REMPLACEZ "TON_ID_MAISON" PAR VOTRE VRAI IDENTIFIANT DE MAISON (ex: 12)
     private final String HOUSE_ID = "16";
     private final String URL_GET_DEVICES = "http://happyresto.enseeiht.fr/smartHouse/api/v1/devices/" + HOUSE_ID;
     private final String URL_POST_COMMAND = "http://happyresto.enseeiht.fr/smartHouse/api/v1/devices/";
@@ -58,9 +57,9 @@ public class MonitoringActivity extends AppCompatActivity {
         runnableCode = new Runnable() {
             @Override
             public void run() {
-                // 1. On interroge le serveur
+                // interrogation du serveur
                 fetchDevices();
-                // 2. On dit au Handler de relancer ce même bout de code dans 5 secondes
+                // Handler relance ce même bout de code dans 5 secondes
                 handler.postDelayed(this, UPDATE_INTERVAL);
             }
         };
@@ -69,19 +68,19 @@ public class MonitoringActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // L'application revient au premier plan : on lance le monitoring régulier
+        // L'app revient au premier plan
         handler.post(runnableCode);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        // L'application n'est plus visible : on arrête proprement les requêtes réseau répétitives
+        // L'app n'est plus visible (arrêt des requêtes réseau répétitives)
         handler.removeCallbacks(runnableCode);
     }
 
     /**
-     * Récupère la liste des appareils depuis l'API REST (Requête GET)
+     * Récupèration de la liste des appareils depuis l'API REST (Requête GET)
      */
     private void fetchDevices() {
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
@@ -91,7 +90,7 @@ public class MonitoringActivity extends AppCompatActivity {
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {
-                        // On nettoie l'interface avant de la reconstruire
+                        // nettoyage de l'interface avant de la reconstruire
                         llDeviceList.removeAllViews();
 
                         try {
@@ -120,7 +119,6 @@ public class MonitoringActivity extends AppCompatActivity {
                                     deviceInfo = "Aucune donnée disponible";
                                 }
 
-                                // Création visuelle de la carte et ajout au conteneur principal
                                 View deviceView = createDeviceView(id, displayName, deviceInfo, isOn);
                                 llDeviceList.addView(deviceView);
                             }
@@ -143,11 +141,11 @@ public class MonitoringActivity extends AppCompatActivity {
     }
 
     /**
-     * Génère dynamiquement le Layout (carte) pour un appareil connecté
+     * Génèration dynamiquement le Layout (carte) pour un appareil connecté
      */
     private View createDeviceView(final int deviceId, String name, String info, final boolean isOn) {
 
-        // 1. Conteneur de la carte (RelativeLayout)
+        // Conteneur de la carte (RelativeLayout)
         RelativeLayout layout = new RelativeLayout(this);
         layout.setPadding(24, 24, 24, 24);
         layout.setBackgroundColor(Color.parseColor("#E0E0E0"));
@@ -159,14 +157,14 @@ public class MonitoringActivity extends AppCompatActivity {
         marginParams.setMargins(0, 0, 0, 16); // Espace entre chaque carte
         layout.setLayoutParams(marginParams);
 
-        // 2. Texte : Nom de l'appareil
+        // Nom de l'appareil
         TextView tvName = new TextView(this);
         tvName.setId(View.generateViewId());
         tvName.setText(name);
         tvName.setTextSize(16);
         tvName.setTextColor(Color.BLACK);
 
-        // 3. Texte : Informations d'état / autonomie
+        // Informations d'état / autonomie
         TextView tvInfo = new TextView(this);
         tvInfo.setText(info);
         tvInfo.setTextColor(Color.DKGRAY);
@@ -179,7 +177,7 @@ public class MonitoringActivity extends AppCompatActivity {
         infoParams.addRule(RelativeLayout.BELOW, tvName.getId()); // Placé sous le nom
         tvInfo.setLayoutParams(infoParams);
 
-        // 4. Bouton d'action : ON / OFF
+        // Bouton d'action : ON / OFF
         final Button btnToggle = new Button(this);
         btnToggle.setText(isOn ? "ON" : "OFF");
 
@@ -191,7 +189,7 @@ public class MonitoringActivity extends AppCompatActivity {
         btnParams.addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE);   // Centré verticalement
         btnToggle.setLayoutParams(btnParams);
 
-        // 5. Listener sur le bouton (Section 4 : Envoi de commandes POST)
+        // Listener sur le bouton (Envoi de commandes POST)
         btnToggle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -210,16 +208,16 @@ public class MonitoringActivity extends AppCompatActivity {
     }
 
     /**
-     * Envoie une commande POST pour changer l'état d'un appareil (Section 4 du TP)
+     * Envoie une commande POST pour changer l'état d'un appareil
      */
     private void toggleDeviceState(final int deviceId) {
         if (MainActivity.estServeur) {
-            // --- LE SERVEUR ---
-            // Il garde l'ancien code : c'est lui qui fait la vraie requête HTTP à l'API
+            // serveur
+            // Il fait la requête HTTP à l'API
             faireRequeteApi(deviceId);
         } else {
-            // --- LE CLIENT (Télécommande) ---
-            // Il n'utilise pas Internet. Il envoie l'ordre au serveur par Bluetooth.
+            // client
+            // Il envoie l'ordre au serveur par Bluetooth.
             if (MainActivity.threadDeCommunication != null) {
                 String ordre = "TOGGLE:" + deviceId;
                 MainActivity.threadDeCommunication.envoyerMessage(ordre);
@@ -230,7 +228,6 @@ public class MonitoringActivity extends AppCompatActivity {
         }
     }
 
-    // J'ai juste isolé ton ancien code Volley dans cette méthode pour que ce soit propre
     public void faireRequeteApi(final int deviceId) {
         StringRequest stringRequest = new StringRequest(
                 Request.Method.POST,

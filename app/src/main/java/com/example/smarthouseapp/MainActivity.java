@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     // Gestionnaire Bluetooth unique du téléphone
     private BluetoothAdapter bluetoothAdapter;
 
-    // Notre identifiant unique partagé (UUID)
+    // (UUID)
     private static final UUID MON_UUID = UUID.fromString("12345678-9abc-def0-1234-56789abcdef0");
 
     // Les éléments de l'interface graphique
@@ -35,16 +35,16 @@ public class MainActivity extends AppCompatActivity {
     private Button btnLancerClient;
     private TextView tvStatusConnexion;
 
-    // Le thread de communication global, accessible depuis les autres écrans
+    // Le thread de communication global
     public static CommunicationThread threadDeCommunication = null;
-    public static boolean estServeur = false; // Pour savoir qui fait quoi
+    public static boolean estServeur = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // --- NOUVEAU BLOC DE PERMISSIONS INTELLIGENT ---
+        // Car en simulation, on a utilisé un téléphone avec android 10 et un autre android 16
         // Si le téléphone est sous Android 12 ou plus récent (Android 16)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED ||
@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
                         101);
             }
         }
-        // --- FIN DU NOUVEAU BLOC ---
 
         // Initialisation du gestionnaire Bluetooth
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -104,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Thread d'écoute pour le Serveur (Le Hub domotique)
-    // On ajoute cette ligne pour dire à Android qu'on gère la sécurité nous-mêmes
+    // cette ligne pour dire à Android que la gestion de la sécurité est par nous-mêmes
     @SuppressLint("MissingPermission")
     private class ServeurThread extends Thread {
         private final BluetoothServerSocket mmServerSocket;
@@ -133,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if (socket != null) {
-                    // --- LE CODE EST PLACÉ ICI : LA CONNEXION A RÉUSSI ---
                     estServeur = true;
                     threadDeCommunication = new CommunicationThread(socket);
                     threadDeCommunication.start();
@@ -153,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Thread pour le Client (La télécommande utilisateur)
+    // Thread pour le Client
     @SuppressLint("MissingPermission")
     private class ClientThread extends Thread {
         private BluetoothSocket mmSocket = null;
@@ -182,12 +180,10 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     mmSocket.connect();
 
-                    // --- LE CODE EST PLACÉ ICI : LA CONNEXION A RÉUSSI ---
                     estServeur = false;
                     threadDeCommunication = new CommunicationThread(mmSocket);
                     threadDeCommunication.start();
 
-                    // On ouvre la page de monitoring
                     startActivity(new Intent(MainActivity.this, MonitoringActivity.class));
                     // -----------------------------------------------------
 
@@ -201,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-    // Le Thread qui gère l'envoi et la réception des messages
+    // Thread qui gère l'envoi et la réception des messages
     public class CommunicationThread extends Thread {
         private final BluetoothSocket mmSocket;
         private final java.io.InputStream mmInStream;
@@ -228,29 +224,28 @@ public class MainActivity extends AppCompatActivity {
             byte[] buffer = new byte[1024];  // Un tampon pour stocker les données reçues
             int bytes; // Le nombre d'octets reçus
 
-            // Le thread tourne en boucle pour écouter les messages en permanence
+            // thread t qui tourne en boucle pour écouter les messages en permanence
             while (true) {
                 try {
-                    // On lit les données venant de l'autre téléphone
+                    // Lecture des données venant de l'autre téléphone
                     bytes = mmInStream.read(buffer);
 
-                    // On transforme ces octets en texte lisible (String)
+                    // transformations des octets en texte lisible
                     String messageRecu = new String(buffer, 0, bytes);
 
-                    // Si on est le Serveur et qu'on reçoit un ordre du type "TOGGLE:294"
+                    // test si on est Serveur et qu'on reçoit un ordre du type "TOGGLE:...."
                     if (estServeur && messageRecu.startsWith("TOGGLE:")) {
-                        // On extrait l'ID de l'appareil (ex: "294")
+                        // On extrait l'ID de l'appareil
                         String idString = messageRecu.split(":")[1].trim();
                         final int idAppareil = Integer.parseInt(idString);
 
-                        // On doit exécuter la requête HTTP sur le fil principal de l'interface
+                        // On exécute la requête HTTP sur le fil principal de l'interface
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 Toast.makeText(MainActivity.this, "Ordre reçu pour l'appareil " + idAppareil, Toast.LENGTH_SHORT).show();
 
-                                // --- LA MAGIE OPÈRE ICI ---
-                                // Si la page des appareils est bien ouverte, on lance la requête web !
+                                // la page des appareils est bien ouverte -> on lance la requête web
                                 if (MonitoringActivity.instance != null) {
                                     MonitoringActivity.instance.faireRequeteApi(idAppareil);
                                 }
@@ -259,16 +254,16 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                 } catch (IOException e) {
-                    // Erreur ou déconnexion, on sort de la boucle
+                    // Erreur ou déconnexion on quitte de la boucle
                     break;
                 }
             }
         }
 
-        // Méthode simple que le Client appellera pour envoyer un ordre au Serveur
+        // Méthode que le Client appellera pour envoyer un ordre au Serveur
         public void envoyerMessage(String message) {
             try {
-                // On transforme le texte en octets et on l'envoie dans le tuyau
+                // transformation inverse (texte en octets) et on l'envoie dans le tuyau
                 mmOutStream.write(message.getBytes());
             } catch (IOException e) {
                 e.printStackTrace();
