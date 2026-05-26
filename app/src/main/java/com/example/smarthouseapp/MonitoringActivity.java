@@ -181,6 +181,14 @@ public class MonitoringActivity extends AppCompatActivity {
         final Button btnToggle = new Button(this);
         btnToggle.setText(isOn ? "ON" : "OFF");
 
+        // Si c'est le Serveur (le Hub) on désactive le clic pour qu'il ne serve que d'affichage
+        if (MainActivity.estServeur) {
+            btnToggle.setEnabled(false);
+        } else {
+            // Si c'est le Client (la Télécommande) on autorise le clic
+            btnToggle.setEnabled(true);
+        }
+
         RelativeLayout.LayoutParams btnParams = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.WRAP_CONTENT,
                 RelativeLayout.LayoutParams.WRAP_CONTENT
